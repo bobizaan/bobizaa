@@ -15,9 +15,9 @@ let handler = async (m, {
     }
 }
 handler.help = ['update']
-handler.tags = ['host']
+handler.tags = ['infobot']
 handler.command = /^update$/i
-handler.owner = true
+handler.owner = false
 handler.mods = false
 handler.premium = false
 handler.group = false
