@@ -1,4 +1,4 @@
-const { Gura } = await (await import('../lib/kobogura.js'));
+const { Gura } = await (await import('../lib/a.js'));
 
 let handler = async (m, { conn, usedPrefix, command }) => {
 try {
