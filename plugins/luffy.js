@@ -1,6 +1,5 @@
 import fetch from 'node-fetch'
 import { pinterest } from '../lib/scrape.js'
-
 let handler = async (m, { conn, command, text, usedPrefix }) => {
 
   try {
