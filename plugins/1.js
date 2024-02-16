@@ -49,7 +49,7 @@ let handler = async (m, { conn, usedPrefix, command, isOwner }) => {
     }
 };
 
-handler.help = ['update];
+handler.help = ['update'];
 handler.tags = ['misc'];
 handler.command = /^(up)$/i;
 
