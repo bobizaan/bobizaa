@@ -1,61 +1,41 @@
-import { exec } from 'child_process';
+import { execSync } from 'child_process'
 
-let handler = async (m, { conn, usedPrefix, command, isOwner }) => {
-    
-    try {
-        const repoOwner = 'bobiza2'; // https://github.com/whiteshadowofficial/Jessi-md
-        const repoName = 'bobizaa';
-        const branch = 'master'; //masterdefault
+var handler = async (m, { conn, text }) => {
 
-        m.reply('Checking for updates...');
+try {
+const stdout = execSync('git pull' + (m.fromMe && text ? ' ' + text : ''));
+let messager = stdout.toString()
+if (messager.includes('Already up to date.')) messager = '✅ *No hay actualizaciones pendientes*'
+if (messager.includes('Updating')) messager = '✅ *Actualización finalizada exitosamente*\n\n' + stdout.toString()
+conn.reply(m.chat, messager, m,  )
+} catch { 
+try {
+const status = execSync('git status --porcelain')
+if (status.length > 0) {
+const conflictedFiles = status.toString().split('\n').filter(line => line.trim() !== '').map(line => {
+if (line.includes('.npm/') || line.includes('.cache/') || line.includes('tmp/') || line.includes('sessions/') || line.includes('npm-debug.log')) {
+return null
+}
+return '*→ ' + line.slice(3) + '*'}).filter(Boolean)
+if (conflictedFiles.length > 0) {
+const errorMessage = `🚩 *Se han hecho cambios locales en archivos del bot que entran en conflicto con las actualizaciones del repositorio. Para actualizar, reinstala el bot o realiza las actualizaciones manualmente*\n\nArchivos en conflicto:\n\n${conflictedFiles.join('\n')}`
+await conn.reply(m.chat, errorMessage, m,  )
+}
+}
+} catch (error) {
+console.error(error)
+let errorMessage2 = '🚩 *Ocurrió un fallo. Por favor, inténtalo de nuevo más tarde*'
+if (error.message) {
+errorMessage2 += '\n*- Mensaje de error:* ' + error.message;
+}
+await conn.reply(m.chat, errorMessage2, m,  )
+}
+}
 
-        exec(`git ls-remote https://github.com/${repoOwner}/${repoName}.git ${branch}`, async (error, stdout, stderr) => {
-            if (error) {
-                console.error('Update check error:', error);
-                console.error('Update check stderr:', stderr);
-                await conn.reply(m.chat, 'Update check failed.', m);
-                return;
-            }
+}
+handler.help = ['update', 'actualizar']
+handler.tags = ['owner']
+handler.command = /^(misajor)$/i
+handler.rowner = true
 
-            const remoteCommit = stdout.trim();
-            const localCommit = require('child_process').execSync('git rev-parse HEAD').toString().trim();
-
-            if (remoteCommit === localCommit) {
-                await conn.reply(m.chat, '> Jessi-MD is up to date. No updates found.', m);
-            } else {
-                await conn.reply(m.chat, 'New updates found! Updating bot...', m);
-
-                exec('git pull origin main', async (updateError, updateStdout, updateStderr) => {
-                    if (updateError) {
-                        console.error('> Jessi-MD update error:', updateError);
-                        console.error('> Jessi-MD update stderr:', updateStderr);
-                        await conn.reply(m.chat, '> Jessi-MD update failed.', m);
-                        return;
-                    }
-
-                    await conn.reply(m.chat, '> Jessi-MD updated successfully. Restarting...', m);
-
-                    
-                    setTimeout(() => {
-                        conn.send('> Jessi-MD is restarting...');
-                        process.exit(0);
-                    }, 1000);
-                });
-            }
-        });
-    } catch (err) {
-        console.error('Update check error:', err);
-        await conn.reply(m.chat, 'Update check failed.', m);
-    }
-};
-
-handler.help = ['update'];
-handler.tags = ['misc'];
-handler.command = /^(up)$/i;
-
-handler.owner = false
-handler.botAdmin = false
-
-
-
-export default handler;
+export default handler
